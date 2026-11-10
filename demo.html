@@ -1,0 +1,489 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0A1020">
+<title>Velqor</title>
+<style>
+:root{
+  --abyss:#0A1020; --hull:#111A31; --line:rgba(143,170,230,.16);
+  --text:#E7ECF7; --soft:#B7C2DD; --mute:#8391B4;
+  --ice:#8FD6FF; --ember:#FFB25A; --alert:#FF7A86; --ok:#7BE3B0;
+  --font:"Avenir Next","Segoe UI Variable Text","Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:radial-gradient(1100px 720px at 34% 16%,#17254D 0%,var(--abyss) 62%) fixed,var(--abyss);
+  color:var(--text);font:16px/1.5 var(--font);-webkit-font-smoothing:antialiased;overflow:hidden}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--ice);outline-offset:2px}
+
+#app{height:100vh;height:100dvh;display:grid;grid-template-rows:auto minmax(0,1fr) auto}
+header{display:flex;align-items:center;gap:16px;padding:13px 22px;border-bottom:1px solid var(--line)}
+.mark{font-weight:300;font-size:19px;letter-spacing:.44em;margin-right:auto}
+.pill{font-size:13px;color:var(--mute);display:flex;align-items:center;gap:8px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--mute);flex:none}
+.dot.on{background:var(--ok)}.dot.off{background:var(--alert)}
+#clock{font-variant-numeric:tabular-nums;color:var(--soft);font-size:14px}
+#speak{border:1px solid var(--line);background:transparent;border-radius:999px;padding:5px 12px;font-size:13px;color:var(--mute)}
+#speak[aria-pressed="true"]{color:#06202E;background:var(--ice);border-color:var(--ice)}
+
+main{display:grid;grid-template-columns:minmax(0,1fr) 380px;min-height:0}
+#talk{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto minmax(0,1fr) auto auto auto;min-height:0;min-width:0}
+#core{width:100%;height:clamp(200px,40vh,440px);display:block;cursor:pointer;border-radius:16px}
+#mode{text-align:center;color:var(--soft);font-size:14px;margin-top:-14px;min-height:22px}
+#log{overflow:auto;padding:14px 22px 8px}
+.line{display:grid;grid-template-columns:76px minmax(0,62ch);gap:14px;padding:5px 0;justify-content:center}
+.who{color:var(--mute);font-size:13px;text-align:right;padding-top:3px}
+.via{display:block;font-size:11px}
+.said{white-space:pre-wrap;overflow-wrap:anywhere}
+.line.you .said{color:var(--soft)}
+.caret::after{content:"";display:inline-block;width:7px;height:1em;background:var(--ice);vertical-align:-2px;margin-left:3px;animation:blink 1s steps(2) infinite}
+.hint{color:var(--mute);text-align:center;max-width:46ch;margin:18px auto;font-size:15px}
+
+#tray{padding:0 22px;display:grid;gap:10px;max-height:34vh;overflow:auto}
+.ask{border:1px solid rgba(255,178,90,.42);border-left:3px solid var(--ember);background:rgba(255,178,90,.07);border-radius:10px;padding:12px 14px;max-width:calc(76px + 14px + 62ch);width:100%;margin:0 auto}
+.ask p{margin:0 0 10px;white-space:pre-wrap;overflow-wrap:anywhere;font-size:14px}
+.ask .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.ask input{width:92px;background:var(--abyss);border:1px solid var(--line);border-radius:8px;padding:7px 10px;color:var(--text);font:inherit;font-size:14px}
+.btn{border:1px solid var(--line);background:transparent;border-radius:8px;padding:7px 14px;font-size:14px}
+.btn.go{background:var(--ember);border-color:var(--ember);color:#1B1206;font-weight:600}
+#note{min-height:20px;text-align:center;color:var(--ember);font-size:13px;padding:2px 22px}
+#chips{display:flex;gap:6px;flex-wrap:wrap;padding:0 22px}
+.chip{font-size:12px;border:1px solid var(--line);border-radius:999px;padding:3px 10px;color:var(--soft);background:var(--hull)}
+#composer{display:flex;gap:8px;padding:10px 22px 16px;align-items:center}
+#text{flex:1;min-width:0;background:var(--hull);border:1px solid var(--line);border-radius:12px;padding:12px 14px;color:var(--text);font:inherit}
+#text::placeholder{color:var(--mute)}
+.icon{width:46px;height:46px;border-radius:12px;border:1px solid var(--line);background:var(--hull);display:grid;place-items:center;flex:none}
+.icon svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+#mic.live{background:var(--ice);color:#06202E;border-color:var(--ice)}
+#send{border:0;background:var(--ice);color:#06202E;font-weight:600;border-radius:12px;padding:0 18px;height:46px}
+
+#side{border-left:1px solid var(--line);overflow:auto;padding:2px 20px 26px;background:rgba(10,16,32,.42)}
+#side h2{font-size:13px;font-weight:600;color:var(--mute);margin:22px 0 6px}
+.item{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--line);font-size:14px}
+.item:last-child{border-bottom:0}
+.grow{flex:1;min-width:0;overflow-wrap:anywhere}
+.item small{color:var(--mute);display:block}
+.empty{color:var(--mute);font-size:14px;padding:6px 0}
+.check{width:20px;height:20px;border-radius:6px;border:1.5px solid var(--mute);background:transparent;flex:none;margin-top:1px;padding:0}
+.check:hover{border-color:var(--ok)}
+.plain{background:none;border:0;color:var(--mute);font-size:13px;padding:0;text-decoration:underline;flex:none}
+.time{color:var(--mute);font-variant-numeric:tabular-nums;font-size:12px;flex:none;width:62px}
+
+#tabs{display:none}
+#boot{position:fixed;inset:0;z-index:20;background:var(--abyss);display:grid;place-items:center;transition:opacity .6s ease,visibility .6s}
+#boot.gone{opacity:0;visibility:hidden}
+.stack{display:grid;justify-items:center;gap:26px}
+.word{font-weight:200;font-size:clamp(34px,8vw,84px);letter-spacing:.5em;padding-left:.5em;display:flex}
+.word span{opacity:0;animation:rise .7s cubic-bezier(.2,.7,.2,1) forwards}
+.beam{width:min(64vw,560px);height:1px;background:linear-gradient(90deg,transparent,var(--ice),transparent);transform:scaleX(0);animation:beam 1.3s .15s ease-out forwards}
+#checks{color:var(--mute);font-size:14px;min-height:1.5em}
+dialog{background:var(--hull);color:var(--text);border:1px solid var(--line);border-radius:14px;padding:22px;max-width:380px;width:calc(100% - 40px)}
+dialog::backdrop{background:rgba(5,8,16,.7)}
+dialog h1{font-size:18px;font-weight:600;margin:0 0 6px}
+dialog p{color:var(--soft);font-size:14px;margin:0 0 14px}
+dialog input{width:100%;background:var(--abyss);border:1px solid var(--line);border-radius:10px;padding:11px 12px;color:var(--text);font:inherit;margin-bottom:12px}
+
+@keyframes rise{from{opacity:0;transform:translateY(18px);filter:blur(8px)}to{opacity:1;transform:none;filter:none}}
+@keyframes beam{0%{transform:scaleX(0);opacity:1}70%{transform:scaleX(1);opacity:1}100%{transform:scaleX(1);opacity:0}}
+@keyframes blink{50%{opacity:0}}
+
+@media (max-width:860px){
+  header{padding:11px 16px;gap:10px}
+  .mark{font-size:16px;letter-spacing:.36em}
+  #clock{display:none}
+  main{grid-template-columns:minmax(0,1fr)}
+  main[data-view="talk"] #side{display:none}
+  main:not([data-view="talk"]) #talk{display:none}
+  main[data-view="today"] #system,main[data-view="system"] #today{display:none}
+  #side{border-left:0;padding:0 16px 24px}
+  #core{height:clamp(170px,30vh,300px)}
+  #log{padding:10px 16px 6px}
+  .line{grid-template-columns:50px minmax(0,1fr);gap:10px}
+  #tray,#chips{padding:0 16px}
+  #composer{padding:8px 16px 12px}
+  #send{padding:0 14px}
+  #tabs{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+  #tabs button{background:none;border:0;padding:12px 0;color:var(--mute);font-size:14px}
+  #tabs button[aria-current="true"]{color:var(--text);box-shadow:inset 0 2px 0 var(--ice)}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important}
+  .word span{opacity:1}
+}
+</style>
+</head>
+<body>
+<div id="boot" aria-hidden="true">
+  <div class="stack">
+    <div class="word" id="word"></div>
+    <div class="beam"></div>
+    <div id="checks"></div>
+  </div>
+</div>
+
+<div id="app">
+  <header>
+    <div class="mark">velqor</div>
+    <button id="speak" type="button" aria-pressed="false">Spoken replies off</button>
+    <div class="pill"><span id="dot" class="dot"></span><span id="conn">Connecting</span></div>
+    <div id="clock"></div>
+  </header>
+
+  <main data-view="talk">
+    <section id="talk" aria-label="Conversation">
+      <canvas id="core" role="button" tabindex="0" aria-label="Start or stop listening"></canvas>
+      <div id="mode" aria-live="polite">Standing by</div>
+      <div id="log" aria-live="polite"></div>
+      <div id="tray"></div>
+      <div><div id="note" role="status"></div><div id="chips"></div></div>
+      <form id="composer" autocomplete="off">
+        <button class="icon" id="attach" type="button" aria-label="Attach a photo or PDF">
+          <svg viewBox="0 0 24 24"><path d="M21 12.5l-8.2 8.2a5.5 5.5 0 01-7.8-7.8l8.6-8.6a3.7 3.7 0 015.2 5.2l-8.5 8.5a1.8 1.8 0 01-2.6-2.6l7.8-7.8"/></svg>
+        </button>
+        <input id="file" type="file" accept="image/jpeg,image/png,image/webp,image/gif,application/pdf" hidden>
+        <input id="text" type="text" placeholder="Tell Velqor what you need" aria-label="Message">
+        <button class="icon" id="mic" type="button" aria-label="Talk">
+          <svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0014 0M12 18v3"/></svg>
+        </button>
+        <button id="send" type="submit">Send</button>
+      </form>
+    </section>
+
+    <aside id="side">
+      <div id="today">
+        <h2>Tasks</h2><div id="tasks"></div>
+        <h2>Reminders</h2><div id="reminders"></div>
+        <h2>Messages taken for you</h2><div id="inbox"></div>
+      </div>
+      <div id="system">
+        <h2>Connections</h2><div id="links"></div>
+        <h2>What Velqor remembers</h2><div id="memory"></div>
+        <h2>Activity</h2><div id="events"></div>
+      </div>
+    </aside>
+  </main>
+
+  <nav id="tabs" aria-label="Sections">
+    <button type="button" data-view="talk" aria-current="true">Talk</button>
+    <button type="button" data-view="today">Today</button>
+    <button type="button" data-view="system">System</button>
+  </nav>
+</div>
+
+<dialog id="auth">
+  <form method="dialog" id="authForm">
+    <h1>Enter your access token</h1>
+    <p>It is the DASHBOARD_TOKEN value from your .env file, or the token printed when the server started.</p>
+    <input id="tokenInput" type="password" aria-label="Access token" autocomplete="current-password">
+    <button class="btn go" type="submit">Connect</button>
+  </form>
+</dialog>
+
+<script>
+(() => {
+'use strict';
+const $ = s => document.querySelector(s);
+const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+const store = { get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} } };
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const CHANNEL = { telegram: 'Telegram', whatsapp: 'WhatsApp', voice: 'Phone', proactive: 'Scheduled' };
+const MODE_TEXT = { idle: 'Standing by', listening: 'Listening', thinking: 'Working on it', speaking: 'Replying' };
+const LINKS = [['model', 'Assistant model'], ['telegram', 'Telegram'], ['whatsapp', 'WhatsApp'], ['voice', 'Phone line'], ['google', 'Gmail and Calendar'], ['voice_notes', 'Voice notes']];
+
+const qs = new URLSearchParams(location.search);
+let token = qs.get('token') || store.get('velqor_token') || '';
+if (qs.get('token')) { store.set('velqor_token', token); history.replaceState(null, '', location.pathname); }
+
+let ws = null, demo = false, mode = 'idle', pulse = 0, streamEl = null, attachments = [];
+let data = { assistant: 'Velqor', integrations: {}, approvals: [], tasks: [], reminders: [], memories: [], inbox: [], events: [], messages: [] };
+let speakOn = store.get('velqor_speak') === '1';
+const seen = new Set();
+const log = $('#log');
+
+/* ---------- small helpers ---------- */
+const clock = ts => new Date(ts * 1000).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+function note(text) { $('#note').textContent = text; clearTimeout(note.t); note.t = setTimeout(() => { $('#note').textContent = ''; }, 6000); }
+function setMode(m) { mode = m; $('#mode').textContent = MODE_TEXT[m]; if (reduce) draw(performance.now()); }
+function setConn(ok, text) { $('#dot').className = 'dot ' + (ok ? 'on' : 'off'); $('#conn').textContent = text; }
+function tick() { const d = new Date(); $('#clock').textContent = d.toLocaleDateString([], { weekday: 'short', day: 'numeric', month: 'short' }) + '  ' + d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }); }
+tick(); setInterval(tick, 15000);
+
+/* ---------- conversation ---------- */
+function addLine(m) {
+  if (m.id != null) { if (seen.has(m.id)) return null; seen.add(m.id); }
+  const hint = log.querySelector('.hint'); if (hint) hint.remove();
+  const you = m.role !== 'assistant';
+  const line = el('div', 'line ' + (you ? 'you' : 'ai'));
+  const who = el('div', 'who', you ? 'You' : data.assistant);
+  if (CHANNEL[m.channel]) who.appendChild(el('span', 'via', CHANNEL[m.channel]));
+  const said = el('div', 'said', m.text);
+  line.append(who, said); log.appendChild(line); log.scrollTop = log.scrollHeight;
+  return said;
+}
+function streamToken(t) {
+  if (!streamEl) { streamEl = addLine({ role: 'assistant', text: '', channel: 'web' }); streamEl.classList.add('caret'); }
+  streamEl.textContent += t; log.scrollTop = log.scrollHeight; pulse = 1;
+  if (mode !== 'speaking') setMode('speaking');
+}
+function endStream() { if (streamEl) { streamEl.parentNode.remove(); streamEl = null; } }
+
+/* ---------- panels ---------- */
+function list(target, rows, emptyText, build) {
+  const box = $(target); box.replaceChildren();
+  if (!rows.length) { box.appendChild(el('div', 'empty', emptyText)); return; }
+  rows.forEach(r => box.appendChild(build(r)));
+}
+function act(msg) { if (demo) { demoAct(msg); return; } if (ws && ws.readyState === 1) ws.send(JSON.stringify(msg)); }
+
+function renderTray() {
+  const tray = $('#tray'); tray.replaceChildren();
+  data.approvals.forEach(a => {
+    const card = el('div', 'ask');
+    card.appendChild(el('p', null, a.summary));
+    const row = el('div', 'row');
+    let code = null;
+    if (a.code) { code = el('input'); code.placeholder = 'Code ' + a.code; code.inputMode = 'numeric'; code.setAttribute('aria-label', 'Type the code ' + a.code + ' to approve'); row.appendChild(code); }
+    const yes = el('button', 'btn go', 'Approve'); yes.type = 'button';
+    yes.onclick = () => act({ type: 'approval', id: a.id, approve: true, code: code ? code.value : '' });
+    const no = el('button', 'btn', 'Decline'); no.type = 'button';
+    no.onclick = () => act({ type: 'approval', id: a.id, approve: false });
+    row.append(yes, no); card.appendChild(row); tray.appendChild(card);
+  });
+}
+function renderAll() {
+  (data.messages || []).forEach(addLine);
+  if (!log.children.length) log.appendChild(el('div', 'hint', 'Type, tap the microphone, or tap the core and speak. Try "add a task to renew my passport" or "what is on my calendar tomorrow".'));
+  renderTray();
+  list('#tasks', data.tasks, 'Nothing open. Ask Velqor to add a task.', t => {
+    const row = el('div', 'item'); const box = el('button', 'check'); box.type = 'button'; box.setAttribute('aria-label', 'Mark done: ' + t.title);
+    box.onclick = () => act({ type: 'task_done', id: t.id });
+    const body = el('div', 'grow', t.title); if (t.due) body.appendChild(el('small', null, 'Due ' + t.due.slice(0, 16).replace('T', ' ')));
+    row.append(box, body); return row;
+  });
+  list('#reminders', data.reminders, 'No reminders set.', r => {
+    const row = el('div', 'item'); const body = el('div', 'grow', r.text);
+    body.appendChild(el('small', null, new Date(r.due_ts * 1000).toLocaleString([], { weekday: 'short', hour: 'numeric', minute: '2-digit' }) + (r.via === 'call' ? ', by phone call' : '')));
+    row.appendChild(body); return row;
+  });
+  list('#inbox', data.inbox, 'No messages. When someone else calls, Velqor takes a message and it shows up here.', m => {
+    const row = el('div', 'item'); const body = el('div', 'grow', m.text); body.appendChild(el('small', null, m.sender + ', ' + clock(m.ts))); row.appendChild(body); return row;
+  });
+  list('#links', LINKS, '', ([key, label]) => {
+    const on = !!data.integrations[key]; const row = el('div', 'item');
+    row.append(el('span', 'dot ' + (on ? 'on' : '')), el('div', 'grow', label), el('small', null, on ? 'Connected' : 'Not set up'));
+    row.querySelector('.dot').style.marginTop = '7px'; return row;
+  });
+  list('#memory', data.memories, 'Nothing saved yet. Tell Velqor something worth remembering.', m => {
+    const row = el('div', 'item'); const del = el('button', 'plain', 'Forget'); del.type = 'button'; del.onclick = () => act({ type: 'forget', id: m.id });
+    row.append(el('div', 'grow', m.text), del); return row;
+  });
+  list('#events', data.events, 'Activity will appear here.', e => {
+    const row = el('div', 'item'); row.append(el('span', 'time', clock(e.ts)), el('div', 'grow', e.detail)); return row;
+  });
+  const n = data.approvals.length;
+  document.title = (n ? '(' + n + ') ' : '') + data.assistant;
+}
+
+/* ---------- live connection ---------- */
+function openSocket() {
+  ws = new WebSocket((location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host + '/ws');
+  ws.onopen = () => ws.send(JSON.stringify({ type: 'auth', token }));
+  ws.onmessage = e => onServer(JSON.parse(e.data));
+  ws.onclose = e => {
+    setConn(false, 'Offline');
+    if (e.code === 4401) { $('#auth').showModal(); return; }
+    setTimeout(openSocket, 2500);
+  };
+}
+function onServer(m) {
+  if (m.type === 'state') { data = m.state; setConn(true, 'Online'); renderAll(); }
+  else if (m.type === 'token') streamToken(m.text);
+  else if (m.type === 'message') { if (m.role === 'assistant') endStream(); addLine(m); }
+  else if (m.type === 'reply') { endStream(); if (m.spoken || speakOn) speak(m.text); else setMode('idle'); }
+}
+function send(text, spoken) {
+  text = (text || '').trim();
+  if (!text && !attachments.length) return;
+  if (demo) { demoTurn(text, spoken); return; }
+  if (!ws || ws.readyState !== 1) { note('Not connected. Trying again in a moment.'); return; }
+  ws.send(JSON.stringify({ type: 'chat', text, spoken: !!spoken, attachments }));
+  attachments = []; renderChips(); setMode('thinking');
+}
+$('#composer').addEventListener('submit', e => { e.preventDefault(); const t = $('#text').value; $('#text').value = ''; send(t, false); });
+$('#authForm').addEventListener('submit', () => { token = $('#tokenInput').value.trim(); store.set('velqor_token', token); setTimeout(openSocket, 50); });
+
+/* ---------- attachments ---------- */
+function renderChips() { const c = $('#chips'); c.replaceChildren(); attachments.forEach(a => c.appendChild(el('span', 'chip', a.name))); }
+$('#attach').onclick = () => $('#file').click();
+$('#file').onchange = e => {
+  const f = e.target.files[0]; e.target.value = '';
+  if (!f) return;
+  if (f.size > 5 * 1024 * 1024) { note('That file is over 5 MB. Send a smaller photo or PDF.'); return; }
+  const r = new FileReader();
+  r.onload = () => { attachments.push({ name: f.name, media_type: f.type, data: String(r.result).split(',')[1] }); renderChips(); $('#text').focus(); };
+  r.readAsDataURL(f);
+};
+
+/* ---------- voice in the browser ---------- */
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+let rec = null, listening = false, analyser = null, micStream = null, audioCtx = null, freq = null;
+async function startMeter() {
+  try {
+    micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    analyser = audioCtx.createAnalyser(); analyser.fftSize = 256; freq = new Uint8Array(analyser.frequencyBinCount);
+    audioCtx.createMediaStreamSource(micStream).connect(analyser);
+  } catch (e) { analyser = null; }
+}
+function stopMeter() {
+  if (micStream) micStream.getTracks().forEach(t => t.stop());
+  if (audioCtx) audioCtx.close().catch(() => {});
+  micStream = audioCtx = analyser = null;
+}
+function toggleMic() {
+  if (listening) { rec && rec.stop(); return; }
+  if (!SR) { note('This browser cannot listen. Type instead, or phone your Velqor number.'); return; }
+  if ('speechSynthesis' in window) speechSynthesis.cancel();
+  let heard = '';
+  rec = new SR(); rec.lang = navigator.language || 'en-US'; rec.interimResults = true; rec.continuous = false;
+  rec.onresult = e => { heard = Array.from(e.results).map(r => r[0].transcript).join(''); $('#text').value = heard; pulse = 1; };
+  rec.onerror = e => { note(e.error === 'not-allowed' ? 'Microphone access is blocked. Allow it in the browser settings, then try again.' : 'I did not catch that. Tap the microphone and try again.'); };
+  rec.onend = () => { listening = false; $('#mic').classList.remove('live'); stopMeter(); const t = heard.trim(); $('#text').value = ''; if (t) send(t, true); else setMode('idle'); };
+  try { rec.start(); } catch (e) { note('The microphone could not start.'); return; }
+  listening = true; $('#mic').classList.add('live'); setMode('listening'); startMeter();
+}
+function speak(text) {
+  if (!('speechSynthesis' in window)) { setMode('idle'); return; }
+  const u = new SpeechSynthesisUtterance(text.slice(0, 700));
+  u.onstart = () => setMode('speaking'); u.onboundary = () => { pulse = 1; };
+  u.onend = u.onerror = () => setMode('idle');
+  setMode('speaking'); speechSynthesis.speak(u);
+  setTimeout(() => { if (mode === 'speaking' && !speechSynthesis.speaking) setMode('idle'); }, 1500);
+}
+function paintSpeak() { const b = $('#speak'); b.setAttribute('aria-pressed', String(speakOn)); b.textContent = speakOn ? 'Spoken replies on' : 'Spoken replies off'; }
+$('#speak').onclick = () => { speakOn = !speakOn; store.set('velqor_speak', speakOn ? '1' : '0'); if (!speakOn && 'speechSynthesis' in window) speechSynthesis.cancel(); paintSpeak(); };
+paintSpeak();
+$('#mic').onclick = toggleMic;
+$('#core').onclick = toggleMic;
+$('#core').onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleMic(); } };
+
+/* ---------- tabs (phone layout) ---------- */
+document.querySelectorAll('#tabs button').forEach(b => b.onclick = () => {
+  $('main').dataset.view = b.dataset.view;
+  document.querySelectorAll('#tabs button').forEach(x => x.setAttribute('aria-current', String(x === b)));
+  if (b.dataset.view === 'talk') { size(); log.scrollTop = log.scrollHeight; }
+});
+
+/* ---------- the core: a corona of filaments that reacts to voice and state ---------- */
+const cv = $('#core'), g = cv.getContext('2d'), TAU = Math.PI * 2;
+const TINT = { idle: [143, 214, 255], listening: [143, 214, 255], thinking: [255, 178, 90], speaking: [255, 232, 205] };
+let W = 0, H = 0, level = 0.1, spin = 0, last = 0, tint = TINT.idle.slice();
+const rgba = (c, a) => 'rgba(' + (c[0] | 0) + ',' + (c[1] | 0) + ',' + (c[2] | 0) + ',' + Math.max(0, Math.min(1, a)) + ')';
+function size() { const r = cv.getBoundingClientRect(), d = Math.min(2, window.devicePixelRatio || 1); W = r.width; H = r.height; cv.width = Math.max(1, W * d); cv.height = Math.max(1, H * d); g.setTransform(d, 0, 0, d, 0, 0); if (reduce) draw(performance.now()); }
+function micLevel() { if (!analyser) return 0.25 + 0.2 * Math.abs(Math.sin(performance.now() / 180)); analyser.getByteFrequencyData(freq); let s = 0; for (let i = 0; i < 48; i++) s += freq[i]; return s / (48 * 255); }
+function draw(ts) {
+  const t = ts / 1000, dt = Math.min(0.05, (ts - last) / 1000 || 0.016); last = ts;
+  const want = mode === 'idle' ? 0.10 + 0.03 * Math.sin(t * 1.2)
+    : mode === 'thinking' ? 0.30
+    : mode === 'listening' ? 0.16 + micLevel() * 1.1
+    : 0.30 + 0.30 * Math.abs(Math.sin(t * 6.3) * Math.sin(t * 2.1)) + pulse * 0.25;
+  level += (want - level) * 0.14; pulse *= 0.9;
+  for (let i = 0; i < 3; i++) tint[i] += (TINT[mode][i] - tint[i]) * 0.07;
+  spin += dt * (mode === 'thinking' ? 1.5 : 0.14);
+  g.clearRect(0, 0, W, H);
+  const cx = W / 2, cy = H / 2, R = Math.min(W, H) * 0.25;
+  const glow = g.createRadialGradient(cx, cy, R * 0.1, cx, cy, R * 1.95);
+  glow.addColorStop(0, rgba(tint, 0.20 + level * 0.35)); glow.addColorStop(1, rgba(tint, 0));
+  g.fillStyle = glow; g.fillRect(0, 0, W, H);
+  const N = 168; g.lineCap = 'round';
+  for (let i = 0; i < N; i++) {
+    const a = i / N * TAU + spin;
+    let n = (Math.sin(i * 0.37 + t * 2.1) + Math.sin(i * 0.11 - t * 1.3) + Math.sin(i * 0.71 + t * 3.7)) / 3;
+    if (mode === 'listening' && analyser) n = freq[(i * 2) % 96] / 255 * 2 - 0.6;
+    const r0 = R * 1.06, len = R * (0.07 + level * (0.62 + 0.5 * n));
+    g.strokeStyle = rgba(tint, 0.22 + 0.9 * level * (0.5 + 0.5 * n)); g.lineWidth = 1.5;
+    g.beginPath(); g.moveTo(cx + Math.cos(a) * r0, cy + Math.sin(a) * r0); g.lineTo(cx + Math.cos(a) * (r0 + len), cy + Math.sin(a) * (r0 + len)); g.stroke();
+  }
+  for (let k = 0; k < 3; k++) {
+    const rr = R * (0.94 - k * 0.2), a0 = spin * (k % 2 ? -2.1 : 1.6) * (1 + k * 0.4) + k * 2.1;
+    g.strokeStyle = rgba(tint, 0.6 - k * 0.14); g.lineWidth = 2.2 - k * 0.5;
+    g.beginPath(); g.arc(cx, cy, rr, a0, a0 + TAU * (0.58 - k * 0.12)); g.stroke();
+    g.beginPath(); g.arc(cx, cy, rr, a0 + TAU * 0.7, a0 + TAU * 0.78); g.stroke();
+  }
+  const heart = R * (0.16 + level * 0.28);
+  const hg = g.createRadialGradient(cx, cy, 0, cx, cy, heart * 2);
+  hg.addColorStop(0, rgba([255, 255, 255], 0.95)); hg.addColorStop(0.35, rgba(tint, 0.8)); hg.addColorStop(1, rgba(tint, 0));
+  g.fillStyle = hg; g.beginPath(); g.arc(cx, cy, heart * 2, 0, TAU); g.fill();
+  if (!reduce) requestAnimationFrame(draw);
+}
+window.addEventListener('resize', size);
+size(); requestAnimationFrame(draw);
+
+/* ---------- preview mode: sample data when no server is reachable ---------- */
+function startDemo() {
+  demo = true; setConn(true, 'Preview with sample data');
+  const now = Date.now() / 1000;
+  data = {
+    assistant: 'Velqor',
+    integrations: { model: true, telegram: true, whatsapp: true, voice: true, google: true, voice_notes: false },
+    approvals: [{ id: 1, tier: 1, code: '', summary: 'Send email to dana@example.com, subject "Thursday works"\n\nHi Dana, Thursday at 3 works for me. See you then.' }],
+    tasks: [{ id: 1, title: 'Submit the sample expense report', due: '' }, { id: 2, title: 'Book a dentist appointment', due: '2026-11-14T09:00' }],
+    reminders: [{ id: 1, text: 'Leave for the airport', due_ts: now + 5400, via: 'call' }],
+    memories: [{ id: 1, text: 'Prefers morning meetings' }, { id: 2, text: 'Sample fact: coffee order is a flat white' }],
+    inbox: [{ id: 1, sender: 'Sam (sample caller)', channel: 'voice', text: 'Calling about the apartment viewing. Please ring back.', ts: now - 3600 }],
+    events: [{ id: 3, kind: 'approval', detail: 'Waiting on you: Send email to dana@example.com', ts: now - 60 }, { id: 2, kind: 'tool', detail: 'email search', ts: now - 70 }, { id: 1, kind: 'proactive', detail: 'Morning brief sent', ts: now - 7200 }],
+    messages: [
+      { id: 1, role: 'user', channel: 'telegram', text: 'Did Dana reply about the meeting?' },
+      { id: 2, role: 'assistant', channel: 'telegram', text: 'Yes. She proposed Thursday at 3. Your calendar is free then, so I drafted a reply accepting. It is waiting for your approval.' },
+    ],
+  };
+  renderAll();
+}
+function demoSay(reply, spoken) {
+  const words = reply.split(' '); let i = 0;
+  setTimeout(() => { const iv = setInterval(() => {
+    streamToken((i ? ' ' : '') + words[i]); i++;
+    if (i >= words.length) { clearInterval(iv); endStream(); addLine({ role: 'assistant', text: reply, channel: 'web' }); renderAll(); if (spoken || speakOn) speak(reply); else setMode('idle'); }
+  }, 60); }, 800);
+}
+function demoTurn(text, spoken) {
+  addLine({ role: 'user', text, channel: 'web' }); setMode('thinking'); attachments = []; renderChips();
+  const m = text.match(/add (?:a )?task(?: to)?:? (.+)/i);
+  if (m) { data.tasks.push({ id: Date.now(), title: m[1], due: '' }); demoSay('Added to your tasks.', spoken); }
+  else if (/^(yes|approve)\b/i.test(text) && data.approvals.length) { data.approvals.shift(); demoSay('Approved in this preview. Nothing was really sent.', spoken); }
+  else demoSay('This is a preview with sample data, so no real assistant is behind it. Start the Velqor server to talk to me for real.', spoken);
+}
+function demoAct(msg) {
+  if (msg.type === 'approval') { data.approvals = data.approvals.filter(a => a.id !== msg.id); addLine({ role: 'assistant', text: msg.approve ? 'Approved in this preview. Nothing was really sent.' : 'Cancelled. Nothing was sent or changed.', channel: 'web' }); }
+  if (msg.type === 'task_done') data.tasks = data.tasks.filter(t => t.id !== msg.id);
+  if (msg.type === 'forget') data.memories = data.memories.filter(t => t.id !== msg.id);
+  renderAll();
+}
+
+/* ---------- start: one boot sequence, then connect ---------- */
+function boot() {
+  const word = $('#word'); 'velqor'.split('').forEach((ch, i) => { const s = el('span', null, ch); s.style.animationDelay = (i * 90) + 'ms'; word.appendChild(s); });
+  const steps = ['Waking the core', 'Loading memory', 'Opening channels']; let i = 0;
+  const show = () => { $('#checks').textContent = steps[i]; i++; };
+  show(); const iv = setInterval(() => { if (i < steps.length) show(); else clearInterval(iv); }, 520);
+  const done = () => $('#boot').classList.add('gone');
+  setTimeout(done, reduce ? 0 : 1900); $('#boot').onclick = done;
+}
+async function start() {
+  boot();
+  try {
+    const ctl = new AbortController(); setTimeout(() => ctl.abort(), 3000);
+    const r = await fetch('/api/health', { cache: 'no-store', signal: ctl.signal });
+    const j = await r.json(); if (j.name !== 'velqor') throw new Error('not velqor');
+  } catch (e) { startDemo(); return; }
+  if (!token) { $('#auth').showModal(); return; }
+  openSocket();
+}
+start();
+})();
+</script>
+</body>
+</html>

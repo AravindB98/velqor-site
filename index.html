@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0A1020">
+<title>Velqor: a personal assistant you can call</title>
+<meta name="description" content="Velqor is a personal assistant you reach by phone call, Telegram, WhatsApp or a web dashboard. It asks before it sends anything.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 128 128'%3E%3Crect width='128' height='128' rx='28' fill='%230A1020'/%3E%3Ccircle cx='64' cy='64' r='34' fill='none' stroke='%238FD6FF' stroke-width='5' stroke-dasharray='150 64' stroke-linecap='round'/%3E%3Ccircle cx='64' cy='64' r='7' fill='%23E7ECF7'/%3E%3C/svg%3E">
+<style>
+:root{
+  --abyss:#0A1020; --hull:#111A31; --line:rgba(143,170,230,.16);
+  --text:#E7ECF7; --soft:#B7C2DD; --mute:#8391B4;
+  --ice:#8FD6FF; --ember:#FFB25A; --ok:#7BE3B0;
+  --font:"Avenir Next","Segoe UI Variable Text","Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;
+  --code:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--abyss);color:var(--text);font:17px/1.6 var(--font);-webkit-font-smoothing:antialiased}
+a{color:var(--ice)}
+:focus-visible{outline:2px solid var(--ice);outline-offset:3px;border-radius:4px}
+.wrap{max-width:1120px;margin:0 auto;padding:0 28px}
+
+.top{display:flex;align-items:center;gap:26px;padding:20px 28px;max-width:1120px;margin:0 auto}
+.mark{font-weight:300;font-size:20px;letter-spacing:.44em;margin-right:auto;color:var(--text);text-decoration:none}
+.top a.nav{color:var(--soft);text-decoration:none;font-size:15px}
+.top a.nav:hover{color:var(--text)}
+
+.hero{background:radial-gradient(900px 620px at 72% 40%,#182750 0%,rgba(10,16,32,0) 68%)}
+.hero .wrap{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);gap:24px;align-items:center;padding-top:44px;padding-bottom:72px}
+h1{font-weight:300;font-size:clamp(40px,5.6vw,72px);line-height:1.06;letter-spacing:-.015em;margin:0 0 22px}
+.lede{font-size:20px;color:var(--soft);max-width:34em;margin:0 0 30px}
+.cta{display:flex;gap:12px;flex-wrap:wrap}
+.btn{display:inline-block;border-radius:12px;padding:13px 22px;font-weight:600;text-decoration:none;font-size:16px}
+.btn.main{background:var(--ice);color:#06202E}
+.btn.ghost{border:1px solid var(--line);color:var(--text)}
+.stage{position:relative}
+#core{width:100%;height:clamp(300px,44vw,500px);display:block}
+#state{text-align:center;color:var(--soft);font-size:15px;margin-top:-10px;min-height:24px}
+
+section{padding:84px 0;border-top:1px solid var(--line)}
+h2{font-weight:300;font-size:clamp(30px,3.6vw,44px);line-height:1.15;margin:0 0 14px;letter-spacing:-.01em}
+.sub{color:var(--soft);max-width:40em;margin:0 0 40px}
+
+.features{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:56px}
+.feature{padding:22px 0;border-top:1px solid var(--line)}
+.feature h3{margin:0 0 6px;font-size:19px;font-weight:600}
+.feature p{margin:0;color:var(--soft);max-width:32em}
+
+.tiers{width:100%;border-collapse:collapse;margin:0 0 34px}
+.tiers th,.tiers td{text-align:left;padding:16px 18px 16px 0;border-top:1px solid var(--line);vertical-align:top}
+.tiers th{font-weight:600;width:30%}
+.tiers td{color:var(--soft)}
+.tiers tr:nth-child(2) th{color:var(--ember)}
+.points{columns:2;column-gap:56px;padding:0;margin:0;list-style:none}
+.points li{break-inside:avoid;padding:0 0 16px 20px;position:relative;color:var(--soft)}
+.points li::before{content:"";position:absolute;left:0;top:.62em;width:8px;height:8px;border-radius:50%;background:var(--ice)}
+.points strong{color:var(--text);font-weight:600}
+
+.frame{border:1px solid var(--line);border-radius:18px;overflow:hidden;background:var(--hull);box-shadow:0 30px 80px rgba(0,0,0,.45)}
+.frame iframe{display:block;width:100%;height:740px;border:0}
+.under{display:flex;gap:18px;flex-wrap:wrap;align-items:baseline;margin-top:16px;color:var(--mute);font-size:15px}
+
+.road{list-style:none;padding:0;margin:0;counter-reset:phase}
+.road li{counter-increment:phase;display:grid;grid-template-columns:64px minmax(0,1fr) auto;gap:18px;align-items:baseline;padding:20px 0;border-top:1px solid var(--line)}
+.road li::before{content:counter(phase);font-weight:200;font-size:34px;line-height:1;color:var(--mute)}
+.road h3{margin:0 0 4px;font-size:19px;font-weight:600}
+.road p{margin:0;color:var(--soft)}
+.chip{font-size:13px;border-radius:999px;padding:4px 12px;border:1px solid var(--line);color:var(--mute);white-space:nowrap}
+.chip.built{color:#062417;background:var(--ok);border-color:var(--ok);font-weight:600}
+.chip.next{color:var(--ember);border-color:rgba(255,178,90,.5)}
+.road li.done::before{color:var(--ok)}
+
+pre{background:var(--hull);border:1px solid var(--line);border-radius:14px;padding:20px 22px;overflow:auto;font:15px/1.7 var(--code);color:var(--text);margin:0 0 22px}
+.status{border-left:3px solid var(--ember);padding:4px 0 4px 18px;color:var(--soft);max-width:44em}
+footer{border-top:1px solid var(--line);padding:34px 0 60px;color:var(--mute);font-size:15px}
+footer .wrap{display:flex;gap:20px;flex-wrap:wrap;justify-content:space-between}
+
+@media (max-width:860px){
+  body{font-size:16px}
+  .top{gap:16px;padding:16px 20px}
+  .top a.nav.hide{display:none}
+  .wrap{padding:0 20px}
+  .hero .wrap{grid-template-columns:minmax(0,1fr);padding-top:16px;padding-bottom:48px}
+  .stage{order:-1}
+  #core{height:300px}
+  .lede{font-size:18px}
+  section{padding:56px 0}
+  .features{grid-template-columns:minmax(0,1fr)}
+  .points{columns:1}
+  .tiers th{width:38%}
+  .frame iframe{height:660px}
+  .road li{grid-template-columns:40px minmax(0,1fr)}
+  .road .chip{grid-column:2;justify-self:start;margin-top:8px}
+}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <a class="mark" href="#top" aria-label="Velqor home">velqor</a>
+  <a class="nav hide" href="#features">Features</a>
+  <a class="nav" href="#demo">Demo</a>
+  <a class="nav" href="#roadmap">Roadmap</a>
+</header>
+
+<main id="top">
+  <div class="hero">
+    <div class="wrap">
+      <div>
+        <h1>A personal assistant you can call.</h1>
+        <p class="lede">Velqor answers by phone, Telegram, WhatsApp and a web dashboard, with one memory behind all of them. It reads your mail and calendar, keeps your tasks, and asks before it sends anything.</p>
+        <div class="cta">
+          <a class="btn main" href="#demo">Try the demo</a>
+          <a class="btn ghost" href="#roadmap">See the roadmap</a>
+        </div>
+      </div>
+      <div class="stage">
+        <canvas id="core" aria-hidden="true"></canvas>
+        <div id="state">Standing by</div>
+      </div>
+    </div>
+  </div>
+
+  <section id="features">
+    <div class="wrap">
+      <h2>What it does today</h2>
+      <p class="sub">Version 0.1 runs on your own server with your own keys.</p>
+      <div class="features">
+        <div class="feature"><h3>Phone calls</h3><p>Ring your Velqor number and talk. Replies are spoken as they are written and you can interrupt mid-sentence. It can phone you too, for a reminder or the morning brief.</p></div>
+        <div class="feature"><h3>Telegram and WhatsApp</h3><p>Send text, photos, PDFs or voice notes. On Telegram, anything that needs your sign-off arrives with Approve and Decline buttons.</p></div>
+        <div class="feature"><h3>A dashboard that listens</h3><p>Works on a phone and a laptop. The core at its centre reacts to your voice and to what Velqor is doing, and the transcript shows every channel in one place.</p></div>
+        <div class="feature"><h3>Email and calendar</h3><p>Searches and reads Gmail, drafts replies, checks your schedule and books events. Sending and booking wait for your yes.</p></div>
+        <div class="feature"><h3>Memory, tasks and reminders</h3><p>Remembers what you tell it and shows you every saved fact with a Forget button beside it. Keeps a task list and reminds you by message or by call.</p></div>
+        <div class="feature"><h3>It speaks first when it should</h3><p>A morning brief of your calendar, mail and tasks. An evening nudge for anything due. Reminders at the time you set.</p></div>
+        <div class="feature"><h3>Photos and documents</h3><p>Send a receipt, a whiteboard or a contract. Velqor reads it and acts on what it finds.</p></div>
+        <div class="feature"><h3>Other callers get a receptionist</h3><p>Anyone else who rings hears an AI assistant that takes a message and passes it on. It tells them nothing about you.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="safety">
+    <div class="wrap">
+      <h2>It asks before it acts</h2>
+      <p class="sub">An assistant with access to your mail needs rules it cannot talk its way around. Every action belongs to one of three tiers.</p>
+      <table class="tiers">
+        <tr><th scope="row">Runs at once</th><td>Reading mail and calendar, searching the web, your own notes, tasks and reminders.</td></tr>
+        <tr><th scope="row">Waits for your yes</th><td>Sending email, creating or deleting calendar events. You see the exact recipient, subject and body first.</td></tr>
+        <tr><th scope="row">Needs a code</th><td>Anything that spends money. You repeat a one-time code. No payment tools ship yet, but the tier is built and tested.</td></tr>
+      </table>
+      <ul class="points">
+        <li><strong>The model cannot approve itself.</strong> Approvals are matched in plain code against your own words or button presses, so text hidden in an email cannot approve anything.</li>
+        <li><strong>Every door is checked.</strong> Twilio requests are signature-verified, Telegram requests carry a shared secret, and each call gets a single-use ticket.</li>
+        <li><strong>A PIN for the phone.</strong> Caller ID can be faked, so phone instructions can be locked behind a spoken or keyed PIN.</li>
+        <li><strong>No card or ID numbers in memory.</strong> They are rejected at the point of saving.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="demo">
+    <div class="wrap">
+      <h2>Try the dashboard</h2>
+      <p class="sub">This is the real interface running on sample data, with nothing connected behind it. Type "add a task to renew my passport", press Approve on the waiting email, or tap the core and speak.</p>
+      <div class="frame">
+        <iframe src="demo.html" title="Velqor dashboard demo with sample data" allow="microphone" loading="lazy"></iframe>
+      </div>
+      <div class="under"><a href="demo.html">Open the demo full screen</a><span>Best on a phone this way.</span></div>
+    </div>
+  </section>
+
+  <section id="roadmap">
+    <div class="wrap">
+      <h2>Roadmap</h2>
+      <p class="sub">Seven phases, built in order. The first three are in the repository now.</p>
+      <ol class="road">
+        <li class="done"><div><h3>Core</h3><p>Agent brain, memory, text channels, email, calendar and approval tiers.</p></div><span class="chip built">Built</span></li>
+        <li class="done"><div><h3>Voice</h3><p>Inbound and outbound phone calls with streamed, interruptible speech.</p></div><span class="chip built">Built</span></li>
+        <li class="done"><div><h3>Proactive and visual</h3><p>Morning brief, nudges, reminders, photo and file handling, and the dashboard.</p></div><span class="chip built">Built</span></li>
+        <li><div><h3>Media</h3><p>Music playback across devices, a laptop helper app, and TV control.</p></div><span class="chip next">Next</span></li>
+        <li><div><h3>Commerce</h3><p>Shopping and food ordering, with a spending cap and a code for every purchase.</p></div><span class="chip">Planned</span></li>
+        <li><div><h3>Wearables</h3><p>A watch app, hands-free voice through smart glasses, and sleep and activity data from a ring.</p></div><span class="chip">Planned</span></li>
+        <li><div><h3>Beyond one person</h3><p>Calls to businesses on your behalf, multiple user accounts, and home automation.</p></div><span class="chip">Later</span></li>
+      </ol>
+    </div>
+  </section>
+
+  <section id="status">
+    <div class="wrap">
+      <h2>Where it stands</h2>
+      <p class="status">Version 0.1 is built. Its 26 automated tests pass and the dashboard has been exercised end to end. It has not yet been run against live Anthropic, Twilio, Telegram or Google accounts, which is the next step. The source code is in a private repository while that testing happens.</p>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>Velqor 0.1, built by <a href="https://github.com/AravindB98">Aravind Balaji</a>.</span>
+  </div>
+</footer>
+
+<script>
+(() => {
+'use strict';
+const cv = document.getElementById('core'), g = cv.getContext('2d'), label = document.getElementById('state'), TAU = Math.PI * 2;
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const MODES = [['idle', 'Standing by', 2600], ['listening', 'Listening', 2600], ['thinking', 'Working on it', 2200], ['speaking', 'Replying', 3000]];
+const TINT = { idle: [143, 214, 255], listening: [143, 214, 255], thinking: [255, 178, 90], speaking: [255, 232, 205] };
+let W = 0, H = 0, mode = 'idle', level = 0.1, spin = 0, last = 0, tint = TINT.idle.slice(), step = 0;
+const rgba = (c, a) => 'rgba(' + (c[0] | 0) + ',' + (c[1] | 0) + ',' + (c[2] | 0) + ',' + Math.max(0, Math.min(1, a)) + ')';
+function size() { const r = cv.getBoundingClientRect(), d = Math.min(2, window.devicePixelRatio || 1); W = r.width; H = r.height; cv.width = Math.max(1, W * d); cv.height = Math.max(1, H * d); g.setTransform(d, 0, 0, d, 0, 0); if (reduce) draw(0); }
+function draw(ts) {
+  const t = ts / 1000, dt = Math.min(0.05, (ts - last) / 1000 || 0.016); last = ts;
+  const want = mode === 'idle' ? 0.10 + 0.03 * Math.sin(t * 1.2)
+    : mode === 'thinking' ? 0.30
+    : mode === 'listening' ? 0.22 + 0.5 * Math.abs(Math.sin(t * 5.1) * Math.sin(t * 1.7))
+    : 0.30 + 0.34 * Math.abs(Math.sin(t * 6.3) * Math.sin(t * 2.1));
+  level += (want - level) * 0.14;
+  for (let i = 0; i < 3; i++) tint[i] += (TINT[mode][i] - tint[i]) * 0.07;
+  spin += dt * (mode === 'thinking' ? 1.5 : 0.14);
+  g.clearRect(0, 0, W, H);
+  const cx = W / 2, cy = H / 2, R = Math.min(W, H) * 0.25;
+  const glow = g.createRadialGradient(cx, cy, R * 0.1, cx, cy, R * 1.95);
+  glow.addColorStop(0, rgba(tint, 0.20 + level * 0.35)); glow.addColorStop(1, rgba(tint, 0));
+  g.fillStyle = glow; g.fillRect(0, 0, W, H);
+  g.lineCap = 'round';
+  for (let i = 0; i < 168; i++) {
+    const a = i / 168 * TAU + spin;
+    const n = (Math.sin(i * 0.37 + t * 2.1) + Math.sin(i * 0.11 - t * 1.3) + Math.sin(i * 0.71 + t * 3.7)) / 3;
+    const r0 = R * 1.06, len = R * (0.07 + level * (0.62 + 0.5 * n));
+    g.strokeStyle = rgba(tint, 0.22 + 0.9 * level * (0.5 + 0.5 * n)); g.lineWidth = 1.5;
+    g.beginPath(); g.moveTo(cx + Math.cos(a) * r0, cy + Math.sin(a) * r0); g.lineTo(cx + Math.cos(a) * (r0 + len), cy + Math.sin(a) * (r0 + len)); g.stroke();
+  }
+  for (let k = 0; k < 3; k++) {
+    const rr = R * (0.94 - k * 0.2), a0 = spin * (k % 2 ? -2.1 : 1.6) * (1 + k * 0.4) + k * 2.1;
+    g.strokeStyle = rgba(tint, 0.6 - k * 0.14); g.lineWidth = 2.2 - k * 0.5;
+    g.beginPath(); g.arc(cx, cy, rr, a0, a0 + TAU * (0.58 - k * 0.12)); g.stroke();
+    g.beginPath(); g.arc(cx, cy, rr, a0 + TAU * 0.7, a0 + TAU * 0.78); g.stroke();
+  }
+  const heart = R * (0.16 + level * 0.28);
+  const hg = g.createRadialGradient(cx, cy, 0, cx, cy, heart * 2);
+  hg.addColorStop(0, rgba([255, 255, 255], 0.95)); hg.addColorStop(0.35, rgba(tint, 0.8)); hg.addColorStop(1, rgba(tint, 0));
+  g.fillStyle = hg; g.beginPath(); g.arc(cx, cy, heart * 2, 0, TAU); g.fill();
+  if (!reduce) requestAnimationFrame(draw);
+}
+function cycle() { const m = MODES[step % MODES.length]; mode = m[0]; label.textContent = m[1]; step++; setTimeout(cycle, m[2]); }
+window.addEventListener('resize', size);
+size();
+if (!reduce) { requestAnimationFrame(draw); cycle(); }
+})();
+</script>
+</body>
+</html>
